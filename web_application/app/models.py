@@ -76,6 +76,12 @@ class Specializations(db.Model):
         self.specialization = specialization
         self.competency_level = competency_level
 
+
+mentored = db.Table('mentored',
+    db.Column('mentee', db.Integer, db.ForeignKey('social_connections.email')),
+    db.Column('mentored', db.Integer, db.ForeignKey('social_connections.email'))
+)
+
 class SocialConnections(db.Model):
     """
     This model captures the relationships at 18F.  Everything is with respect to a user.
@@ -84,39 +90,17 @@ class SocialConnections(db.Model):
     @email - the person's gsa email
     @facilitator - the person's facilitator
     @manager - the person's manager
-    @mentored - someone this person has mentored - these relationships are modeled by the mentored table 
-    @mentored_by - someone who has mentored this person - these relationships are modeled by the mentored table 
-    @worked_project 
+    @facilitation_group - the faciliation group for the individual
     """
     __tablename__ = "social_connections"
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String)
     facilitator = db.Column(db.String)
     manager = db.Column(db.String)
-    mentored = db.relationship('SocialConnections',
-                               secondary=mentored,
-                               primaryjoin=(mentored.c.mentee == email),
-                               secondaryjoin=(mentored.c.mentored == email),
-                               backref=db.backref('mentored', lazy='dynamic'),
-                               lazy='dynamic')
-                                            
-    def __init__(self,email,specialization,competency_level):
+    facilitation_group = db.Column(db.String)
+    
+    def __init__(self,email,facilitator,manager, facilitation_group):
         self.email = email
-        self.specialization = specialization
-        self.competency_level = competency_level
-
-    def mentored(self, mentor):
-        if not self.mentored_by(mentor):
-            self.mentored.append(mentor)
-            return self
-
-    def menteed(self, mentee):
-        if not self.menteed_by(mentee):
-            self.menteed.append(mentee)
-            return self
-        
-mentored = db.Table('mentored',
-    db.Column('mentee', db.Integer, db.ForeignKey('social_connections.email')),
-    db.Column('mentored', db.Integer, db.ForeignKey('social_connections.email'))
-)
-
+        self.facilitator = facilitator
+        self.manager = manager
+        self.facilitation_group = facilitation_group
